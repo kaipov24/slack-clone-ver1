@@ -11,6 +11,8 @@ import Home from '../components/home'
 import PrivateComponent from '../components/private-route'
 import NotFound from '../components/404'
 import Game from '../components/game'
+import Chat from '../components/chat'
+
 
 import Startup from './startup'
 
@@ -79,6 +81,7 @@ const RootComponent = (props) => {
             <OnlyAnonymousRoute exact path="/login" component={() => <Home />} />
             <Route exact path="/" component={() => <Home />} />
             <Route exact path="/game" component={() => <Game />} />
+            <PrivateRoute exact path="/chat" component={() => <Chat />} />
 
             <Route exact path="/dashboard" component={() => <Home />} />
             <PrivateRoute exact path="/private" component={() => <PrivateComponent />} />

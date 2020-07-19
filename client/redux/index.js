@@ -3,6 +3,7 @@ import { routerMiddleware } from 'connected-react-router'
 import thunk from 'redux-thunk'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import SockJS from 'sockjs-client'
+// import { toast } from 'react-toastify'
 
 import rootReducer from './reducers'
 import createHistory from './history'
@@ -31,9 +32,17 @@ if (typeof ENABLE_SOCKETS !== 'undefined' && ENABLE_SOCKETS) {
       store.dispatch(socketActions.connected)
     }
 
-    socket.onmessage = (message) => {
+    socket.onmessage = ({ data }) => {
       // eslint-disable-next-line no-console
-      console.log(message)
+      try {
+        const parsedData = JSON.parse(data)
+
+        store.dispatch(parsedData)
+
+        // toast(parsedData.message)
+      } catch (err) {
+        console.log(err)
+      }
 
       // socket.close();
     }
