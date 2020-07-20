@@ -88,6 +88,9 @@ server.post('/api/v1/auth', async (req, res) => {
     const token = jwt.sign(payload, config.secret, { expiresIn: '48h' })
     delete user.password
     res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 48 })
+    connections.forEach((c) => {
+      c.write(JSON.stringify({ type: 'SHOW_MESSAGE', message: `${user.email} just logged in` }))
+    })
     res.json({ status: 'ok', token, user })
   } catch (err) {
     console.log(err)
@@ -134,10 +137,75 @@ if (config.isSocketsEnabled) {
   const echo = sockjs.createServer()
   echo.on('connection', (conn) => {
     connections.push(conn)
-    conn.on('data', async () => {})
+    conn.on('data', async (data) => {
+      console.log('received', data)
+      const parsedData = JSON.parse(data)
+      if (
+        typeof parsedData.type !== 'undefined' &&
+        parsedData.type === 'SEND_MESSAGE_TO_THE_CHANNEL'
+      ) {
+        if (parsedData.currentChannel.indexOf('#') === 0) {
+          connections.forEach((c) => {
+            c.write(data)
+          })
+        }
+
+        if (parsedData.currentChannel.indexOf('@') === 0) {
+          connections
+            .filter(
+              (it) =>
+                typeof it.userInfo !== 'undefined' && it.userInfo.email === conn.userInfo.email
+            )
+            .forEach((c) => {
+              c.write(
+                JSON.stringify({
+                  ...parsedData
+                })
+              )
+            })
+
+          connections
+            .filter(
+              (it) =>
+                typeof it.userInfo !== 'undefined' &&
+                it.userInfo.email === parsedData.currentChannel.slice(1)
+            )
+            .forEach((c) => {
+              c.write(
+                JSON.stringify({
+                  ...parsedData,
+                  currentChannel: `@${conn.userInfo.email}`
+                })
+              )
+            })
+        }
+      }
+
+      if (parsedData.type === 'SYSTEM_WELCOME') {
+        conn.userInfo = {
+          email: parsedData.email
+        }
+        console.log(conn.userInfo)
+        const users = connections
+          .filter((it) => typeof it.userInfo !== 'undefined')
+          .map((it) => it.userInfo.email)
+        console.log(users)
+
+        connections.forEach((c) => {
+          c.write(JSON.stringify({ type: 'UPDATE_ALIVE_USERS', users }))
+        })
+      }
+    })
 
     conn.on('close', () => {
       connections = connections.filter((c) => c.readyState !== 3)
+      const users = connections
+        .filter((it) => typeof conn.userInfo !== 'undefined')
+        .map((it) => conn.userInfo.email)
+
+      connections.forEach((c) => {
+        c.write(JSON.stringify({ type: 'UPDATE_ALIVE_USERS', users }))
+      })
     })
   })
   echo.installHandlers(app, { prefix: '/ws' })

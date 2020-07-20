@@ -1,6 +1,6 @@
 import Cookies from 'universal-cookie'
 
-import { history } from '..'
+import { history, getSocket } from '..'
 
 const UPDATE_LOGIN = 'UPDATE_LOGIN'
 const UPDATE_PASSWORD = 'UPDATE_PASSWORD'
@@ -47,6 +47,11 @@ export function trySignIn() {
       fetch('/api/v1/auth')
         .then((r) => r.json())
         .then((data) => {
+          setTimeout(() => {
+            getSocket().send(
+              JSON.stringify({ type: 'SYSTEM_WELCOME', email: data.user.email })
+            )
+          }, 1000)
           dispatch({ type: LOGIN, token: data.token, user: data.user })
           history.push('/chat')
         })
@@ -62,6 +67,7 @@ export function tryGetUserInfo() {
       fetch('/api/v1/user-info')
         .then((r) => r.json())
         .then((data) => {
+
           console.log(data)
         })
         .catch((err) => err)
@@ -86,6 +92,9 @@ export function signIn() {
     })
       .then((r) => r.json())
       .then((data) => {
+
+        getSocket().send(JSON.stringify({ type: 'SYSTEM_WELCOME', email: data.user.email }))
+
         dispatch({ type: LOGIN, token: data.token, user: data.user })
         history.push('/chat')
       })

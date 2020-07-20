@@ -3,7 +3,6 @@ import { routerMiddleware } from 'connected-react-router'
 import thunk from 'redux-thunk'
 import { composeWithDevTools } from 'redux-devtools-extension'
 import SockJS from 'sockjs-client'
-// import { toast } from 'react-toastify'
 
 import rootReducer from './reducers'
 import createHistory from './history'
