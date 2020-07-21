@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
       type: [String],
       default: ['user']
     },
+    channels: {
+      type: [String],
+      default: []
+    },
     password: {
       type: String,
       required: true
@@ -34,13 +38,27 @@ userSchema.pre('save', async function (next) {
 
 userSchema.method({
   passwordMatches(password) {
-    console.log(bcrypt.hashSync(password), this.password)
     return bcrypt.compareSync(password, this.password)
   }
 })
 
 userSchema.statics = {
-  async findAndValidateUser ({ email, password }) {
+  
+  async toggleChannel({ email, channel }) {
+    const user = await this.findOne({ email }).exec()
+    if (!user) {
+      throw new Error('No User')
+    }
+    if (user.channels.indexOf(channel) >= 0) {
+      user.channels = user.channels.filter((ch) => ch !== channel)
+    } else {
+      user.channels = [...user.channels, channel]
+    }
+    await user.save()
+    return user
+  },
+
+  async findAndValidateUser({ email, password }) {
     if (!email) {
       throw new Error('No Email')
     }
@@ -61,6 +79,5 @@ userSchema.statics = {
 
     return user
   }
-
 }
 export default mongoose.model('users', userSchema)

@@ -3,11 +3,9 @@ import { useDispatch } from 'react-redux'
 
 import { sendMesage } from '../../redux/reducers/chat'
 
-
 const MessageInput = () => {
   const [message, setMessage] = useState('')
   const dispatch = useDispatch()
-
   return (
     <div className="flex justify-center align-center">
       <input

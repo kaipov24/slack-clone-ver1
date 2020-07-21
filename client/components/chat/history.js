@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux'
 import ReactMarkdown from 'react-markdown'
 import format from 'date-fns/format'
 
-
 const MessageInput = () => {
   const currentChannel = useSelector((s) => s.chat.currentChannel)
 
@@ -16,7 +15,7 @@ const MessageInput = () => {
           <div key={id} className="flex">
             <div className="flex">
               [{format(new Date(time), 'MM/dd/yyyy H:m:s')}] {email}:
-            </div> 
+            </div>
             <div className="ml-2 flex">
               <ReactMarkdown source={message} />
             </div>
